@@ -1,0 +1,1650 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <title>micromort</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+  <script src="third-party/Chart.bundle.js"></script>
+  <script type="text/javascript" src='third-party/jquery-3.4.1.min.js'></script>
+
+</head>
+
+<body>
+  <script type="text/javascript" src="third-party/Detector.js"></script>
+  <script type="text/javascript" src="third-party/three.min.js"></script>
+  <script type="text/javascript" src="third-party/Tween.js"></script>
+  <script type="text/javascript" src="globe_touch.js"></script>
+
+  <!-- Note the additional JS files! always need all of these for postprocessing. -->
+  <script src="third-party/js/postprocessing/EffectComposer.js"></script>
+  <script src="third-party/js/postprocessing/RenderPass.js"></script>
+  <script src="third-party/js/postprocessing/ShaderPass.js"></script>
+  <script src="third-party/js/postprocessing/MaskPass.js"></script>
+  <script src="third-party/js/shaders/CopyShader.js"></script>
+  <!-- antialiasing -->
+  <script src="third-party/js/shaders/FXAAShader.js"></script>
+
+  <script id="globeVertexShader" type="x-shader/x-vertex">
+    varying vec3 vNormal;
+    varying vec2 vUv;
+    void main()
+    {
+    	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0);
+    	vNormal = normalize( normalMatrix * normal );
+    	vUv = uv;
+    }
+  </script>
+
+
+
+  <script id="globeFragmentShader" type="x-shader/x-fragment">
+    uniform sampler2D mapIndex;
+    uniform sampler2D lookup;
+    uniform sampler2D outline;
+    uniform sampler2D blendImage;
+    varying vec3 vNormal;
+    varying vec2 vUv;
+    void main()
+    {
+    	vec4 mapColor = texture2D( mapIndex, vUv );
+    	float indexedColor = mapColor.y;
+    	vec2 lookupUV = vec2( indexedColor, 0.0 );
+    	vec4 lookupColor = texture2D( lookup, lookupUV );
+    	vec4 outlineColor = texture2D( outline, vUv );
+    	vec4 blendColor = texture2D( blendImage, vUv );
+
+    	gl_FragColor = 0.01 * outlineColor + 1.0 * lookupColor + 0.99 * blendColor;
+    }
+  </script>
+
+
+  <div class="page">
+    <div class="notification -active" id="n1">
+      <div class="notification__content">
+        <h2 class="notification__title">Breaking News</h2>
+        <p class="notification__subtitle">
+          USA: terroristic attack, but Micromort doesn’t falter
+        </p>
+        <p class="notification__message">
+          Terrorists destroyed World Trade Center, hit pentagon in raid with hijacked jet: 2977 death, but Micromort loses only 2,38%.
+        </p>
+        <div class="notification__footer">
+          <a href="#" class="notification__button -primary" id="check1">Check</a>
+          <a href="#" class="notification__button -secondary" id="close1">Close</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification -active" id="n2">
+      <div class="notification__content">
+        <h2 class="notification__title">Breaking News</h2>
+        <p class="notification__subtitle">
+          SRI LANKA: Thousands killed in tsunami, Micromort loses ground
+        </p>
+        <p class="notification__message">
+          Over 35.000 people were killed by the Ocean earthquake: Micromort falls and loses 71,88%.
+        </p>
+        <div class="notification__footer">
+          <a href="#" class="notification__button -primary" id="check2">Check</a>
+          <a href="#" class="notification__button -secondary" id="close2">Close</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification -active" id="n3">
+      <div class="notification__content">
+        <h2 class="notification__title">Breaking News</h2>
+        <p class="notification__subtitle">
+          HAITI: devastating earthquake, Micromort to the historical lows
+        </p>
+        <p class="notification__message">
+          Haiti devastated: 230.000 deaths caused by the earthquake and Micromort collapses.
+        </p>
+        <div class="notification__footer">
+          <a href="#" class="notification__button -primary" id="check3">Check</a>
+          <a href="#" class="notification__button -secondary" id="close3">Close</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification -active" id="n4">
+      <div class="notification__content">
+        <h2 class="notification__title">Breaking News</h2>
+        <p class="notification__subtitle">
+          LIBYA: civil war broken out, Micromort falls to its lowest
+        </p>
+        <p class="notification__message">
+          The civil war in Libya caused almost 25.000 deaths and a 97,45% fall in Micromort to the value of 0,52 €.
+        </p>
+        <div class="notification__footer">
+          <a href="#" class="notification__button -primary" id="check4">Check</a>
+          <a href="#" class="notification__button -secondary" id="close4">Close</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification -active" id="n5">
+      <div class="notification__content">
+        <h2 class="notification__title">Breaking News</h2>
+        <p class="notification__subtitle">
+          SYRIA: war goes on, Micromort collapses
+        </p>
+        <p class="notification__message">
+          The war in Syria continues: the victims raised almost to 50.000 and Micromort doors to 1,02 € loosing 73,16%.
+        </p>
+        <div class="notification__footer">
+          <a href="#" class="notification__button -primary" id="check5">Check</a>
+          <a href="#" class="notification__button -secondary" id="close5">Close</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification -active" id="n6">
+      <div class="notification__content">
+        <h2 class="notification__title">Breaking News</h2>
+        <p class="notification__subtitle">
+          IRAQ: Increasing deaths for the war, Micromort under 5 €
+        </p>
+        <p class="notification__message">
+          The bloody civil war in Iraq has made the investment in Iraqi Micromort favourable, as the experts suggest.
+        </p>
+        <div class="notification__footer">
+          <a href="#" class="notification__button -primary" id="check6">Check</a>
+          <a href="#" class="notification__button -secondary" id="close6">Close</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification -active" id="n7">
+      <div class="notification__content">
+        <h2 class="notification__title">Breaking News</h2>
+        <p class="notification__subtitle">
+          UKRAINE: Donbass War and its deaths are impacting on Micromort
+        </p>
+        <p class="notification__message">
+          The crisis in Ukraine has become a war and is causing Micromort to collapse.
+        </p>
+        <div class="notification__footer">
+          <a href="#" class="notification__button -primary" id="check7">Check</a>
+          <a href="#" class="notification__button -secondary" id="close7">Close</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification -active" id="n8">
+      <div class="notification__content">
+        <h2 class="notification__title">Breaking News</h2>
+        <p class="notification__subtitle">
+          FRANCE: terrorist attack in Nice, Micromort suffers from it
+        </p>
+        <p class="notification__message">
+          The Nice massacre caused 86 deaths, and Micromort is about 10 € less.
+        </p>
+        <div class="notification__footer">
+          <a href="#" class="notification__button -primary" id="check8">Check</a>
+          <a href="#" class="notification__button -secondary" id="close8">Close</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="container" style="background-color:#04160b"></div>
+
+
+  <!-- <div id="intro">
+    <video autoplay muted loop id="videoBg">
+      <source src="images/loop_sito.mp4" type="video/mp4">
+    </video>
+    <img src="images/logo_screen.png" style="position: absolute; max-width: 600px; z-index: 10001; left: 50vw; transform: translate(-300px, 0);">
+    <span class="introButton" onclick="openVideo()" style=" font-size: 40px;left:50vw; transform: translate(-500px);">About</span>
+    <span class="introButton" onclick="closeIntro()" style="left: 50vw;transform: translateX(-50%); background: rgba(240, 48, 104, 1); color:rgba(3, 17, 9, 1); font-size: 40px;">Get started</span>
+    <span class="introButton" onclick="openIns()" style="left: 50vw;transform: translateX(270px); font-size: 40px;" >How-To</span>
+
+
+    <div class="videoPopup" id="video">
+      <video autoplay controls id="videoPop">
+        <source src="images/teaser.mp4" type="video/mp4">
+      </video>
+      <img src="images/close_in.png" onclick="closeVideo()" style="margin-left: 87.1vw; margin-top: 12vh; max-height: 30px; max-width: 30px">
+      <div style="position: absolute; z-index: 10001; right: 2vw;bottom:2vw;text-align: center;">
+        <span>Find out more on<br>micromort.org</span><br>
+        <img src="qr-code.svg"width="100px">
+      </div>
+
+    </div>
+
+    <span style="position: absolute;z-index: 10001;left: 50vw;bottom: 25px;transform: translateX(-50%);font-family: 'px_light';font-size: 18px;color: var(--verdino)">
+      Find out more on <strong>micromort.org</strong> and <strong>@micromort_org</strong>
+    </span>
+
+    <span style="position: absolute;z-index: 10001;left: 50vw;top: 80px; transform: translateX(-50%);font-family: 'px';font-size: 35px;color: var(--verdino)">
+      What if every death had a <span style="color: #f03068">price</span>?
+    </span>
+  </div> -->
+
+
+
+  <div class="instructions" id="ins0" style="max-width:1920px">
+    <img src="images/istruzioni_1.png" class="istruzioni">
+    <img src="images/istruzioni_2.png" class="istruzioni">
+    <img src="images/istruzioni_3.png" class="istruzioni">
+    <img src="images/istruzioni_4.png" class="istruzioni">
+    <img src="images/istruzioni_5.png" class="istruzioni">
+    <img src="images/istruzioni_6.png" class="istruzioni">
+    <img src="images/istruzioni_7.png" class="istruzioni">
+    <img src="images/istruzioni_8.png" class="istruzioni">
+
+    <img src="images/drag.png" id="drag" class="dragIcon">
+    <img src="images/pinch.png" id="pinch" class="pinchIcon">
+    <img src="images/tap.png" id="tap" onclick="closeIns()" class="tapIcon">
+    <div><img src="images/ist_7.png" id="globoZoom" class="globoZoom"></div>
+
+    <img src="images/close_in.png" onclick="closeIns()" style="margin-left: 97vw; margin-top: 2vh; max-height: 30px; max-width: 30px">
+
+    <a onclick="plusSlides(-1)" style="margin-left: 40%; margin-top: 85vh;" id="nx"> <img src="images/prev.png" style="max-height: 40px; max-width: 25px"> </a>
+    <a onclick="plusSlides(1)" style="margin-left: 59%; margin-top: 85vh;" id="pv"> <img src="images/next.png" style="max-height: 40px; max-width: 25px"> </a>
+  </div>
+
+  <img src="images/logo_flag.png" width="220px" style="z-index: 1000; position: absolute; left: 50%; top: 0%; transform: translate(-75px,0)" onclick="openIntro()">
+
+  <img src="images/close.png" id="close" height="100px" onclick="closeNav()" style="position: absolute; top: 45%; left: 280px; transition: all .2s cubic-bezier(.42,0,1,1)">
+  <img src="images/open.png" id="open" height="100px" onclick="openNav()" style="position: absolute; top: 45%; left: 0px; margin-left: -300px; transition: all .2s cubic-bezier(.42,0,1,1)">
+
+  <div class="insButton" id="insbutton" onclick="openIns()">?</div>
+
+  <div id="zoominButton" style="height:45px; width: 40px; border: 3px solid rgba(159,220,141, 1); border-radius:20px 20px 0px 0px; position: absolute; right: 2%; bottom: 20%; background-color:rgba(3, 17, 9, 1); text-align: center; padding-top: 13px; font-size: 30px;">+</div>
+
+  <div id="zoomoutButton" style="height:37px; width: 40px; border: 3px solid rgba(159,220,141, 1); border-radius:0px 0px 20px 20px; position: absolute; right: 2%; bottom: 16.2%; background-color:rgba(3, 17, 9, 1); text-align: center; padding-top: 10px; font-size: 30px;">-</div>
+
+  <div id="accordion" class="lista" style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;" unselectable="on" onselectstart="return false;" onmousedown="return false;">
+    <h5 id="countries" style="margin-top:0; font-size: 15px; color: #9fdc8d; position: fixed; background: black; z-index: 1000; height; width:250px; height: 30px; top: 0; padding-top: 15px;">Countries' list</h5>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">A<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="AF">Afghanistan</li>
+      <li id="AL">Albania</li>
+      <li id="DZ">Algeria</li>
+      <li id="AD">Andorra</li>
+      <li id="AO">Angola</li>
+      <li id="AG">Antigua & Barbuda</li>
+      <li id="AR">Argentina</li>
+      <li id="AM">Armenia</li>
+      <li id="AU">Australia</li>
+      <li id="AT">Austria</li>
+      <li id="AZ">Azerbaijan</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">B<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="BS">Bahamas</li>
+      <li id="BRN">Bahrain</li>
+      <li id="BD">Bangladesh</li>
+      <li id="BB">Barbados</li>
+      <li id="BY">Belarus</li>
+      <li id="BE">Belgium</li>
+      <li id="BZ">Belize</li>
+      <li id="BJ">Benin</li>
+      <li id="BT">Bhutan</li>
+      <li id="BO">Bolivia</li>
+      <li id="BA" style="line-height:28px; padding: 10px 0 10px 0;">Bosnia and Herzegovina</li>
+      <li id="BW">Botswana</li>
+      <li id="BR">Brazil</li>
+      <li id="BN">Brunei</li>
+      <li id="BG">Bulgaria</li>
+      <li id="BF">Burkina Faso</li>
+      <li id="BI">Burundi</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">C<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="CV">Cabo Verde</li>
+      <li id="KH">Cambodia</li>
+      <li id="CM">Cameroon</li>
+      <li id="CA">Canada</li>
+      <li id="CF" style="line-height:28px; padding: 10px 0 10px 0;">Central African Republic</li>
+      <li id="TD">Chad</li>
+      <li id="CL">Chile</li>
+      <li id="CN">China</li>
+      <li id="CO">Colombia</li>
+      <li id="KM">Comoros</li>
+      <li id="CD" style="line-height:28px; padding: 10px 0 10px 0;">Congo (Democratic Republic)</li>
+      <li id="CG">Congo (Republic)</li>
+      <li id="CR">Costa Rica</li>
+      <li id="HR">Croatia</li>
+      <li id="CU">Cuba</li>
+      <li id="CY">Cyprus</li>
+      <li id="CZ">Czech Republic</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">D<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu" id="tutorial">
+      <li id="DK">Denmark</li>
+      <li id="DJ">Djibouti</li>
+      <li id="DM">Dominica</li>
+      <li id="DO">Dominican Republic</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">E<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="TL">East Timor</li>
+      <li id="EC">Ecuador</li>
+      <li id="EG">Egypt</li>
+      <li id="SV">El Salvador</li>
+      <li id="GQ">Equatorial Guinea</li>
+      <li id="ER">Eritrea</li>
+      <li id="EE">Estonia</li>
+      <li id="SZ">Eswatini</li>
+      <li id="ET">Ethiopia</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">F<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="FJ">Fiji</li>
+      <li id="FI">Finland</li>
+      <li id="FR">France</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">G<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="GA">Gabon</li>
+      <li id="GM">Gambia</li>
+      <li id="GE">Georgia</li>
+      <li id="DE">Germany</li>
+      <li id="GH">Ghana</li>
+      <li id="GR">Greece</li>
+      <li id="GD">Grenada</li>
+      <li id="GT">Guatemala</li>
+      <li id="GN">Guinea</li>
+      <li id="GW">Guinea-Bissau</li>
+      <li id="GY">Guyana</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">H<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="HT">Haiti</li>
+      <li id="HN">Honduras</li>
+      <li id="HU">Hungary</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">I<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="IS">Iceland</li>
+      <li id="IN">India</li>
+      <li id="ID">Indonesia</li>
+      <li id="IR">Iran</li>
+      <li id="IQ">Iraq</li>
+      <li id="IE">Ireland</li>
+      <li id="IL">Israel</li>
+      <li id="IT">Italy</li>
+      <li id="CI">Ivory Coast</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">J<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="JM">Jamaica</li>
+      <li id="JP">Japan</li>
+      <li id="JO">Jordan</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">K<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="KZ">Kazakhstan</li>
+      <li id="KE">Kenya</li>
+      <li id="KI">Kiribati</li>
+      <li id="KP">Korea, North</li>
+      <li id="KR">Korea, South</li>
+      <li id="KW">Kuwait</li>
+      <li id="KG">Kyrgyzstan</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">L<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="LA">Laos</li>
+      <li id="LV">Latvia</li>
+      <li id="LB">Lebanon</li>
+      <li id="LS">Lesotho</li>
+      <li id="LR">Liberia</li>
+      <li id="LY">Libya</li>
+      <li id="LI">Liechtenstein</li>
+      <li id="LT">Lithuania</li>
+      <li id="LU">Luxembourg</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">M<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="MG">Madagascar</li>
+      <li id="MW">Malawi</li>
+      <li id="MY">Malaysia</li>
+      <li id="MV">Maldives</li>
+      <li id="ML">Mali</li>
+      <li id="MT">Malta</li>
+      <li id="MH">Marshall Islands</li>
+      <li id="MR">Mauritania</li>
+      <li id="MU">Mauritius</li>
+      <li id="MX">Mexico</li>
+      <li id="FM">Micronesia</li>
+      <li id="MD">Moldova</li>
+      <li id="MN">Mongolia</li>
+      <li id="ME">Montenegro</li>
+      <li id="MA">Morocco</li>
+      <li id="MZ">Mozambique</li>
+      <li id="MM">Myanmar</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">N<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="NA">Namibia</li>
+      <li id="NR">Nauru</li>
+      <li id="NP">Nepal</li>
+      <li id="NL">Netherlands</li>
+      <li id="NZ">New Zeland</li>
+      <li id="NI">Nicaragua</li>
+      <li id="NE">Niger</li>
+      <li id="NG">Nigeria</li>
+      <li id="MK">North Macedonia</li>
+      <li id="NO">Norway</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">O<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+<li id="OM">Oman</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">P<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="PK">Pakistan</li>
+      <li id="PW">Palau</li>
+      <li id="PS">Palestine</li>
+      <li id="PA">Panama</li>
+      <li id="PG">Papua Nuova Guinea</li>
+      <li id="PY">Paraguay</li>
+      <li id="PE">Peru</li>
+      <li id="PH">Philippines</li>
+      <li id="PL">Poland</li>
+      <li id="PT">Portugal</li>
+      <li id="MC">Principality of Monaco</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">Q<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+<li id="QA">Qatar</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">R<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="RO">Romania</li>
+      <li id="RU">Russia</li>
+      <li id="RW">Rwanda</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">S<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="KN">Saint Kitts and Nevis</li>
+      <li id="LC">Saint Lucia</li>
+      <li id="VC" style="line-height:28px; padding: 10px 0 10px 0;">Saint Vincent and the Grenadines</li>
+      <li id="WS">Samoa</li>
+      <li id="SM">San Marino</li>
+      <li id="ST">São Tomé e Príncipe</li>
+      <li id="SA">Saudi Arabia</li>
+      <li id="SN">Senegal</li>
+      <li id="RS">Serbia</li>
+      <li id="SC">Seychelles</li>
+      <li id="SL">Sierra Leone</li>
+      <li id="SG">Singapore</li>
+      <li id="SK">Slovakia</li>
+      <li id="SI">Slovenia</li>
+      <li id="SB">Solomon Islands</li>
+      <li id="SO">Somalia</li>
+      <li id="ZA">South Africa</li>
+      <li id="SSD">South Sudan</li>
+      <li id="ES">Spain</li>
+      <li id="LK">Sri Lanka</li>
+      <li id="SD">Sudan</li>
+      <li id="SR">Suriname</li>
+      <li id="SE">Sweden</li>
+      <li id="CH">Switzerland</li>
+      <li id="SY">Syria</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">T<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="TJ">Tajikistan</li>
+      <li id="TZ">Tanzania</li>
+      <li id="TH">Thailand</li>
+      <li id="TW">Taiwan</li>
+      <li id="TG">Togo</li>
+      <li id="TO">Tonga</li>
+      <li id="TT">Trinidad & Tobago</li>
+      <li id="TN">Tunisia</li>
+      <li id="TR">Turkey</li>
+      <li id="TM">Turkmenistan</li>
+      <li id="TC">Turks and Cacois</li>
+      <li id="TV">Tuvalu</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">U<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="UG">Uganda</li>
+      <li id="UA">Ukraine</li>
+      <li id="AE">United Arab Emirates</li>
+      <li id="GB">United Kingdom</li>
+      <li id="US">United States</li>
+      <li id="UY">Uruguay</li>
+      <li id="UZ">Uzbekistan</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">V<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="VU">Vanuatu</li>
+      <li id="VA">Vatican City</li>
+      <li id="VE">Venezuela</li>
+      <li id="VN">Vietnam</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">Y<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+<li id="YE">Yemen</li>
+    </ul>
+    <div class="link" style="font-size:60px; line-height: 60px; margin: 0px ;margin-top: 30px;  border-bottom: solid 3px #9fdc8d; cursor:default;">Z<i class="fa fa-chevron-down"></i></div>
+    <ul class="submenu">
+      <li id="ZM">Zambia</li>
+      <li id="ZW">Zimbabwe</li>
+    </ul>
+
+  </div>
+
+  <script>
+  var slideIndex = 0;
+  // document.getElementById("videoPop").pause();
+
+  function openIns() {
+    document.getElementById("ins0").style.display= "block";
+    document.getElementById("insbutton").style.display = "none";
+    slideIndex = 0;
+    showSlides(slideIndex);
+    $('#intro').fadeOut();
+  }
+
+  function openVideo() {
+    document.getElementById("video").style.display= "block";
+    document.getElementById("video").style.display= "block";
+
+    // document.getElementById("videoPop").play();
+  }
+
+  function closeVideo() {
+    document.getElementById("video").style.display= "none";
+    document.getElementById("videoPop").pause();
+    document.getElementById("videoPop").currentTime = 0;
+  }
+
+  function closeIns() {
+    document.getElementById("ins0").style.display= "none";
+    document.getElementById("insbutton").style.display = "block";
+  }
+
+  showSlides(slideIndex);
+
+    function plusSlides(n) {
+      showSlides(slideIndex += n);
+    }
+
+    function showSlides(n) {
+      var i;
+      var slides = document.getElementsByClassName("istruzioni");
+      if (n > slides.length - 1) {
+        slideIndex = 0
+      }
+
+      if (slideIndex == 5) {
+        document.getElementById("drag").style.display = 'block';
+
+      } else {
+        document.getElementById("drag").style.display = 'none';
+      }
+
+      if (slideIndex == 6) {
+        document.getElementById("pinch").style.display = 'block';
+        document.getElementById("globoZoom").style.display = 'block';
+      } else {
+        document.getElementById("pinch").style.display = 'none';
+        document.getElementById("globoZoom").style.display = 'none';
+      }
+
+      if (slideIndex == 7) {
+        document.getElementById("pv").style.display = 'none';
+        document.getElementById("tap").style.display = 'block';
+      } else {
+        document.getElementById("pv").style.display = 'block';
+        document.getElementById("tap").style.display = 'none';
+      }
+
+      if (slideIndex == 0) {
+        document.getElementById("nx").style.display = 'none'
+      } else {
+        document.getElementById("nx").style.display = 'block'
+      }
+
+      if (n < 0) {
+        slideIndex = slides.length - 1
+      }
+      for (i = 0; i < slides.length; i++) {
+        slides[i].style.display = "none";
+      }
+      slides[slideIndex].style.display = "block";
+      slides[slideIndex].style.display = "block";
+      slides[slideIndex].style.display = "block";
+      slides[slideIndex].style.display = "block";
+    }
+
+// hide intro after 30 secs
+    var timedelay = 1;
+    function delayCheck() {
+      if(timedelay == 5) {
+        if ($('#intro').css('display') == 'none') {
+          location.reload()
+        }
+        $('#intro').fadeIn();
+        document.getElementById('popup').style.display = 'none'
+        timedelay = 1;
+        }
+      timedelay = timedelay+1;
+    }
+
+    $(document).mousemove(function() {
+      // $('#intro').fadeOut();
+      timedelay = 1;
+      clearInterval(_delay);
+      _delay = setInterval(delayCheck, 12000); //6000 = 30 sec
+      });
+    // page loads starts delay timer
+    _delay = setInterval(delayCheck, 12000) //6000 = 30 sec
+
+  function closeIntro() {
+    $('#intro').fadeOut();
+    document.getElementById('videoSyria').pause();
+  }
+
+  function openIntro() {
+    $('.slidecontainer').fadeOut();
+    $('#accordion').fadeOut();
+    $('#container').fadeOut();
+    location.reload()
+    $('#intro').fadeIn();
+  }
+
+  function openNav() {
+    document.getElementById("accordion").style.marginLeft= "0px";
+    document.getElementById("countries").style.marginLeft= "0px";
+    document.getElementById("close").style.marginLeft= "0px";
+    document.getElementById("open").style.marginLeft= "-300px";
+    document.getElementById("insbutton").style.marginLeft= "300px";
+  }
+
+  function closeNav() {
+    document.getElementById("accordion").style.marginLeft= "-300px";
+    document.getElementById("countries").style.marginLeft= "-100px";
+    document.getElementById("close").style.marginLeft= "-300px";
+    document.getElementById("open").style.marginLeft= "0px";
+    document.getElementById("insbutton").style.marginLeft= "27px";
+  }
+
+  $(function() {
+    var Accordion = function(el, multiple) {
+      this.el = el || {};
+      this.multiple = multiple || true;
+
+      var links = this.el.find('.link');
+
+      links.on('click', {el: this.el, multiple: this.multiple}, this.dropdown)
+    }
+
+    Accordion.prototype.dropdown = function(e) {
+      var $el = e.data.el;
+        $this = $(this),
+        $next = $this.next();
+
+      $next.slideToggle();
+      $this.parent().toggleClass('open');
+
+      if (!e.data.multiple) {
+        $el.find('.submenu').not($next).slideUp().parent().removeClass('open');
+      };
+    }
+
+    var accordion = new Accordion($('#accordion'), false);
+  });
+</script>
+
+  <div id="popup" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close">&times;</span>
+        <h2 id="titolo"></h2>
+      </div>
+      <h3 id="chartND1" style="position:absolute; right:34%; margin-top: 29%; color: #f03068"><img src="alert.png" alt="alert" width="28px" height="26px" style="margin-left: 38%"><br>data not available</h3>
+      <h3 id="chartND2" style="position:absolute; right:34%; margin-top: 79%; color: #f03068"><img src="alert.png" alt="alert" width="28px" height="26px" style="margin-left: 38%"><br>data not available</h3>
+      <div class="modal-body" style="margin-top: -15px;">
+        <!-- grafico start -->
+        <div id="highlight"></div>
+        <div class="container" style="padding-bottom:18px;">
+          <hr style="position: relative; border-color: #f03068; border-width: 1.2px;"></hr>
+          <button type="button" name="zoom" id="zoom">zoom +</button>
+          <div class="intestazione2" style="padding-top: 5px;">Price</div>
+          <canvas id="chartAF" style="padding-top: 0;"></canvas>
+        </div>
+        <div class="container2" style="padding-bottom:28px;">
+          <hr></hr>
+          <div class="intestazione2">Deaths</div>
+          <canvas id="chartDE"></canvas>
+        </div>
+
+        <br>
+
+        <table style="width: 100%;">
+          <br>
+          <hr style="border: 0.8px solid #9fdc8d; margin-top: -10px;">
+          <tr>
+            <td>
+              <div class="intestazione">Price</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="width:18%;">
+              <h4 style="text-align: left; font-weight: normal; color: #9fdc8d; margin-top:0px">Historical max.</br><span id="max"></span><br><span id="annoMax"></span></h4>
+            </td>
+            <td style="width:16%;">
+              <h4 style="text-align: left; font-weight: normal; color: #9fdc8d; margin-top:0px">Historical min.</br><span id="min"></span><br><span id="annoMin"></span></h4>
+            </td>
+            <td style="width:15%;">
+              <h4 style="text-align: left; font-weight: normal; color: #9fdc8d; padding-left: 15px; margin-top:-21px;">Last</br><span id="last"></span></h4>
+            </td>
+            <td style="width:18%;">
+              <h4 style="text-align: left; font-weight: normal; color: #9fdc8d; padding-left: 15px; margin-top:-21px;">Average</br><span id="media"></span></h4>
+            </td>
+          </tr>
+        </table>
+
+        <table style="width: 100%; padding-top:0px;">
+          <hr style="border: 0.8px solid #9fdc8d;margin-top: -10px;">
+
+          <tr>
+            <td>
+              <div class="intestazione">Deaths</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="width:27%;"><h4 style="text-align: left; font-weight: normal; color: #9fdc8d; margin-top:0px;">Historical max.</br><span id="max_d"></span><br><span id="mortiMax"></span></h4></td>
+            <td style="width:25%;"><h4 style="text-align: left; font-weight: normal; color: #9fdc8d;padding-left: 5px;margin-top:0px;">Historical min.</br><span id="min_d"></span><br><span id="mortiMin"></span></h4></td>
+            <td style="width:22%;"><h4 style="text-align: left; font-weight: normal; color: #9fdc8d; padding-left: 15px; margin-top:-21px;">Last</br><span id="last_d"></span></h4></td>
+            <td><h4 style="text-align: left; font-weight: normal; color: #9fdc8d; padding-left: 15px; margin-top:-21px;">Average</br><span id="media_d"></span></h4></td>
+          </tr>
+        </table>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="videoNews">
+    <!-- usa -->
+    <video autoplay id="videoUsa">
+      <source src="images/01_Usa_interazione_def.mp4" type="video/mp4">
+    </video>
+    <img src="images/close_in.png" id="vUS" style="display: none; margin-left: 79.8vw; top: 15.3vh; max-height: 25px; max-width: 25px; position: absolute; z-index: 10001">
+    <!-- sri lanka -->
+    <video autoplay id="videoSri">
+      <source src="images/04_Sri Lanka_breve_def.mp4" type="video/mp4">
+    </video>
+    <img src="images/close_in.png" id="vSL" style="display: none; margin-left: 79.8vw; top: 15.3vh; max-height: 25px; max-width: 25px; position: absolute; z-index: 10001">
+    <!-- haiti -->
+    <video autoplay id="videoHaiti">
+      <source src="images/10_Haiti_interazione_def_1.mp4" type="video/mp4">
+    </video>
+    <img src="images/close_in.png" id="vH" style="display: none; margin-left: 79.8vw; top: 15.3vh; max-height: 25px; max-width: 25px; position: absolute; z-index: 10001">
+    <!-- Libya -->
+    <video autoplay id="videoLibya">
+      <source src="images/11_Libya_interazione_def.mp4" type="video/mp4">
+    </video>
+    <img src="images/close_in.png" id="vL" style="display: none; margin-left: 79.8vw; top: 15.3vh; max-height: 25px; max-width: 25px; position: absolute; z-index: 10001">
+    <!-- syria -->
+    <video autoplay id="videoSyria">
+      <source src="images/12_Syria_interazione_def.mp4" type="video/mp4">
+    </video>
+    <img src="images/close_in.png" id="vS" style="display: none; margin-left: 79.8vw; top: 15.3vh; max-height: 25px; max-width: 25px; position: absolute; z-index: 10001">
+    <!-- iraq -->
+    <video autoplay id="videoIraq">
+      <source src="images/14_Iraq_interazione_def.mp4" type="video/mp4">
+    </video>
+    <img src="images/close_in.png" id="vI" style="display: none; margin-left: 79.8vw; top: 15.3vh; max-height: 25px; max-width: 25px; position: absolute; z-index: 10001">
+    <!-- ukraine -->
+    <video autoplay id="videoUkraine">
+      <source src="images/15_Ukraine_interazione_def.mp4" type="video/mp4">
+    </video>
+    <img src="images/close_in.png" id="vUK" style="display: none; margin-left: 79.8vw; top: 15.3vh; max-height: 25px; max-width: 25px; position: absolute; z-index: 10001">
+    <!-- france -->
+    <video autoplay id="videoFrance">
+      <source src="images/16_France_interazione_def.mp4" type="video/mp4">
+    </video>
+    <img src="images/close_in.png" id="vF" style="display: none; margin-left: 79.8vw; top: 15.3vh; max-height: 25px; max-width: 25px; position: absolute; z-index: 10001">
+
+  </div>
+
+  <style media="screen">
+    .year {
+      width: 5.25% !important;
+      font-size: 16px !important;
+    }
+
+    .active {
+      font-size: 16px !important;
+    }
+  </style>
+
+  <div id="currentInfo">
+    <div style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;" unselectable="on" onselectstart="return false;" onmousedown="return false;">
+      <span id="year2000" class="year" onclick="f0()">2000</span>
+      <span id="year2001" class="year" onclick="f1()">2001</span>
+      <span id="year2002" class="year" onclick="f2()">2002</span>
+      <span id="year2003" class="year" onclick="f3()">2003</span>
+      <span id="year2004" class="year" onclick="f4()">2004</span>
+      <span id="year2005" class="year" onclick="f5()">2005</span>
+      <span id="year2006" class="year" onclick="f6()">2006</span>
+      <span id="year2007" class="year" onclick="f7()">2007</span>
+      <span id="year2008" class="year" onclick="f8()">2008</span>
+      <span id="year2009" class="year" onclick="f9()">2009</span>
+      <span id="year2010" class="year" onclick="f10()">2010</span>
+      <span id="year2011" class="year" onclick="f11()">2011</span>
+      <span id="year2012" class="year" onclick="f12()">2012</span>
+      <span id="year2013" class="year" onclick="f13()">2013</span>
+      <span id="year2014" class="year" onclick="f14()">2014</span>
+      <span id="year2015" class="year" onclick="f15()">2015</span>
+      <span id="year2016" class="year" onclick="f16()">2016</span>
+      <span id="year2017" class="year" onclick="f17()">2017</span>
+      <span id="year2018" class="year" onclick="f18()">COVID-19</span>
+
+    </div>
+    <div class="slidecontainer">
+      <input type="range" step="1" min="0" max="18" value="0" class="slider" id="myRange">
+    </div>
+  </div>
+
+<!-- notifiche javascript -->
+  <script id="rendered-js">
+    const activeClass = "-active";
+    const notification1 = document.getElementById("n1");
+    const notification2 = document.getElementById("n2");
+    const notification3 = document.getElementById("n3");
+    const notification4 = document.getElementById("n4");
+    const notification5 = document.getElementById("n5");
+    const notification6 = document.getElementById("n6");
+    const notification7 = document.getElementById("n7");
+    const notification8 = document.getElementById("n8");
+
+    // const toggleButton = document.querySelector(".toggle-button");
+    document.getElementById('close1').onclick = function() {
+      notification1.classList.remove(activeClass);
+    }
+    document.getElementById('close2').onclick = function() {
+      notification2.classList.remove(activeClass);
+    }
+    document.getElementById('close3').onclick = function() {
+      notification3.classList.remove(activeClass);
+    }
+    document.getElementById('close4').onclick = function() {
+      notification4.classList.remove(activeClass);
+    }
+    document.getElementById('close5').onclick = function() {
+      notification5.classList.remove(activeClass);
+    }
+    document.getElementById('close6').onclick = function() {
+      notification6.classList.remove(activeClass);
+    }
+    document.getElementById('close7').onclick = function() {
+      notification7.classList.remove(activeClass);
+    }
+    document.getElementById('close8').onclick = function() {
+      notification8.classList.remove(activeClass);
+    }
+
+    document.getElementById('check1').onclick = function() {
+
+    }
+  </script>
+
+  <script type="text/javascript">
+    if (!Detector.webgl) {
+      Detector.addGetWebGLMessage();
+    } else {
+
+      var years = [
+        '2000', '2001',
+        '2002', '2003',
+        '2004', '2005',
+        '2006', '2007',
+        '2008', '2009',
+        '2010', '2011',
+        '2012', '2013',
+        '2014', '2015',
+        '2016', '2017',
+        '2018'
+      ];
+
+      var container = document.getElementById('container');
+      var globe = new DAT.Globe(container);
+
+      // console.log(globe);
+      var i, tweens = [];
+
+      var settime = function(globe, t) {
+
+        return function() {
+          new TWEEN.Tween(globe).to({
+            time: t / years.length
+          }, 600).easing(TWEEN.Easing.Cubic.EaseOut).start();
+
+          var y = document.getElementById('year'+years[t]);
+          document.getElementById("myRange").value = t;
+          document.getElementById('popup').style.display = 'none';
+          if (y.getAttribute('class') === 'year active') {
+            return;
+          }
+          var yy = document.getElementsByClassName('year');
+          for(i = 0; i < yy.length; i ++) {
+            yy[i].setAttribute('class','year');
+          }
+          y.setAttribute('class', 'year active');
+        };
+      }
+
+      for(var i = 0; i < years.length; i++) {
+        var y = document.getElementById('year'+years[i]);
+        y.addEventListener('click', settime(globe,i), false);
+      }
+
+      function f0() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f1() {
+        notification1.classList.add(activeClass);
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+
+      }
+      function f2() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f3() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f4() {
+        notification2.classList.add(activeClass);
+        notification1.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f5() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f6() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f7() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f8() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f9() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f10() {
+        notification3.classList.add(activeClass)
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f11() {
+        notification4.classList.add(activeClass)
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f12() {
+        notification5.classList.add(activeClass)
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f13() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f14() {
+        notification6.classList.add(activeClass)
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f15() {
+        notification7.classList.add(activeClass)
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+      function f16() {
+        notification8.classList.add(activeClass)
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+      }
+      function f17() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+      }
+
+      function f18() {
+        notification1.classList.remove(activeClass)
+        notification2.classList.remove(activeClass)
+        notification3.classList.remove(activeClass)
+        notification4.classList.remove(activeClass)
+        notification5.classList.remove(activeClass)
+        notification6.classList.remove(activeClass)
+        notification7.classList.remove(activeClass)
+        notification8.classList.remove(activeClass)
+
+        document.getElementById("myRange").value = "18";
+
+        slider = 18;
+
+        if (slider == 18) {
+          settime(globe, 18)();
+          var anno = document.getElementById("year2018")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2018")
+          anno.setAttribute('class', 'year');
+        }
+
+      }
+
+      document.getElementById("myRange").oninput = function() {
+        var slider = document.getElementById("myRange").value
+        if (slider == 0) {
+          settime(globe, 0)();
+          var anno = document.getElementById("year2000")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2000")
+          anno.setAttribute('class', 'year');
+        }
+
+        if (slider == 1) {
+          settime(globe, 1)();
+          var anno = document.getElementById("year2001")
+          anno.setAttribute('class', 'year active');
+          notification1.classList.add(activeClass);
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2001")
+          anno.setAttribute('class', 'year');
+          notification1.classList.remove(activeClass)
+        }
+
+        if (slider == 2) {
+          settime(globe, 2)();
+          var anno = document.getElementById("year2002")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2002")
+          anno.setAttribute('class', 'year');
+        }
+
+        if (slider == 3) {
+          settime(globe, 3)();
+          var anno = document.getElementById("year2003")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2003")
+          anno.setAttribute('class', 'year');
+        }
+
+        if (slider == 4) {
+          settime(globe, 4)();
+          var anno = document.getElementById("year2004")
+          anno.setAttribute('class', 'year active');
+          notification2.classList.add(activeClass);
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2004")
+          anno.setAttribute('class', 'year');
+          notification2.classList.remove(activeClass)
+        }
+
+
+        if (slider == 5) {
+          settime(globe, 5)();
+          var anno = document.getElementById("year2005")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2005")
+          anno.setAttribute('class', 'year');
+        }
+
+        if (slider == 6) {
+          settime(globe, 6)();
+          var anno = document.getElementById("year2006")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2006")
+          anno.setAttribute('class', 'year');
+        }
+
+        if (slider == 7) {
+          settime(globe, 7)();
+          var anno = document.getElementById("year2007")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2007")
+          anno.setAttribute('class', 'year');
+        }
+
+        if (slider == 8) {
+          settime(globe, 8)();
+          var anno = document.getElementById("year2008")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2008")
+          anno.setAttribute('class', 'year');
+        }
+
+        if (slider == 9) {
+          settime(globe, 9)();
+          var anno = document.getElementById("year2009")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2009")
+          anno.setAttribute('class', 'year');
+        }
+
+        if (slider == 10) {
+          settime(globe, 10)();
+          var anno = document.getElementById("year2010")
+          anno.setAttribute('class', 'year active');
+          notification3.classList.add(activeClass)
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2010")
+          anno.setAttribute('class', 'year');
+          notification3.classList.remove(activeClass)
+        }
+
+        if (slider == 11) {
+          settime(globe, 11)();
+          var anno = document.getElementById("year2011")
+          anno.setAttribute('class', 'year active');
+          notification4.classList.add(activeClass)
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2011")
+          anno.setAttribute('class', 'year');
+          notification4.classList.remove(activeClass)
+        }
+
+        if (slider == 12) {
+          settime(globe, 12)();
+          var anno = document.getElementById("year2012")
+          anno.setAttribute('class', 'year active');
+          notification5.classList.add(activeClass)
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2012")
+          anno.setAttribute('class', 'year');
+          notification5.classList.remove(activeClass)
+        }
+
+        if (slider == 13) {
+          settime(globe, 13)();
+          var anno = document.getElementById("year2013")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2013")
+          anno.setAttribute('class', 'year');
+        }
+
+        if (slider == 14) {
+          settime(globe, 14)();
+          var anno = document.getElementById("year2014")
+          anno.setAttribute('class', 'year active');
+          notification6.classList.add(activeClass);
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2014")
+          anno.setAttribute('class', 'year');
+          notification6.classList.remove(activeClass)
+        }
+
+        if (slider == 15) {
+          settime(globe, 15)();
+          var anno = document.getElementById("year2015")
+          anno.setAttribute('class', 'year active');
+          notification7.classList.add(activeClass);
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2015")
+          anno.setAttribute('class', 'year');
+          notification7.classList.remove(activeClass)
+        }
+
+        if (slider == 16) {
+          settime(globe, 16)();
+          var anno = document.getElementById("year2016")
+          anno.setAttribute('class', 'year active');
+          notification8.classList.add(activeClass);
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2016")
+          anno.setAttribute('class', 'year');
+          notification8.classList.remove(activeClass)
+        }
+
+        if (slider == 17) {
+          settime(globe, 17)();
+          var anno = document.getElementById("year2017")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2017")
+          anno.setAttribute('class', 'year');
+        }
+
+        // if (slider == 18) {
+        //   settime(globe, 18)();
+        //   var anno = document.getElementById("yearCovid")
+        //   anno.setAttribute('class', 'year active');
+        //   document.getElementById('popup').style.display = 'none';
+        // } else {
+        //   var anno = document.getElementById("yearCovid")
+        //   anno.setAttribute('class', 'year');
+        // }
+        if (slider == 18) {
+          settime(globe, 18)();
+          var anno = document.getElementById("year2018")
+          anno.setAttribute('class', 'year active');
+          document.getElementById('popup').style.display = 'none';
+        } else {
+          var anno = document.getElementById("year2018")
+          anno.setAttribute('class', 'year');
+        }
+      }
+
+      var xhr;
+      TWEEN.start();
+
+      xhr = new XMLHttpRequest();
+      xhr.open('GET', 'micromort.json', true);
+      xhr.onreadystatechange = function(e) {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            var data = JSON.parse(xhr.responseText);
+            window.data = data;
+            for (i = 0; i < data.length; i++) {
+              globe.addData(data[i][1], { //disattivare fino a dopo "animater: true" per togliere dati
+                format: 'magnitude',
+                name: data[i][0],
+                animated: true
+              });
+            }
+            globe.createPoints();
+            settime(globe, 0)();
+            var anno = document.getElementById("year2000")
+            anno.setAttribute('class', 'year active');
+            notification1.classList.remove(activeClass)
+            notification2.classList.remove(activeClass)
+            notification3.classList.remove(activeClass)
+            notification4.classList.remove(activeClass)
+            notification5.classList.remove(activeClass)
+            notification6.classList.remove(activeClass)
+            notification7.classList.remove(activeClass)
+            notification8.classList.remove(activeClass)
+            globe.animate();
+            document.body.style.backgroundImage = 'none'; // remove loading
+          }
+        }
+      };
+      xhr.send(null);
+    }
+  </script>
+
+  <script>
+    Chart.defaults.global.defaultFontFamily = 'px_light';
+
+    var canvas = document.getElementById("chartAF");
+    var ctx = canvas.getContext('2d');
+    var data = {
+      labels: ["2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "COVID"],
+      datasets: [{
+        label: "Covid",
+        data: [],
+        lineTension: 0,
+        borderColor: "rgba(240, 48, 104, 1)",
+        backgroundColor: "rgba(240, 48, 104, 0.3)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(240, 48, 104, 1)",
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: "rgba(255,99,132,1)"
+      }, {
+        label: "Senza Covid",
+        data: [],
+        lineTension: 0,
+        borderColor: "rgba(233, 186, 193, 1)",
+        backgroundColor: "rgba(240, 48, 104, 0)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(233, 186, 193, 1)",
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: "rgba(241, 208, 214, 1)",
+        borderDash: [4,2],
+      }]
+    };
+
+    var options = {
+      title: {
+        display: false,
+        text: 'Price',
+        fontSize: 11,
+        fontColor: 'rgba(159, 220, 141, 1)',
+        position: 'top',
+      },
+      tooltips: {
+
+
+        enabled: true,
+        mode: 'label',
+        cornerRadius: 5,
+        caretSize: 1,
+        xPadding: 10,
+        yPadding: 10,
+        backgroundColor: 'rgba(159, 220, 141, 0.7)',
+        titleFontStyle: 'normal',
+        titleFontSize: 11,
+        bodyFontSize: 11,
+        titleMarginBottom: 11,
+        mode: 'single',
+        intersect: true,
+
+
+        custom: function(tooltip) {
+          if (!tooltip) return;
+          tooltip.displayColors = false;
+        },
+        callbacks: {
+          label: function(tooltipItem, data) {
+            return Number(tooltipItem.yLabel) + " €"
+          }
+        }
+      },
+      legend: {
+        display: false,
+      },
+      scales: {
+        yAxes: [{
+          stacked: false,
+          gridLines: {
+            display: true,
+            color: "rgba(159, 220, 141, 0.2)",
+            zeroLineColor: 'rgba(159, 220, 141, 1)',
+          },
+          ticks: {
+            fontSize: 11,
+            fontColor: 'rgba(159, 220, 141, 1)',
+            padding: 20,
+            beginAtZero: true,
+            min: 0,
+            max: 250,
+            stepSize: 25,
+            userCallback: function(label, index, labels) {
+              // when the floored value is the same as the value we have a whole number
+              if (Math.floor(label) === label) {
+                return label + '€';
+              }
+
+            },
+            callback: function(value, index, values) {
+              return '€' + value;
+            }
+          }
+        }],
+        xAxes: [{
+          gridLines: {
+            display: true,
+            color: "rgba(159, 220, 141, 0.2)",
+            zeroLineColor: 'rgba(159, 220, 141, 1)',
+          },
+          ticks: {
+            fontSize: 11,
+            fontColor: 'rgba(159, 220, 141, 1)',
+            padding: 20,
+            maxRotation: 45,
+            minRotation: 45,
+            beginAtZero: true,
+          }
+        }]
+      },
+      responsive: true,
+      maintainAspectRatio: true,
+    }
+
+    // Chart declaration:
+    var chart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: options,
+    });
+
+
+    var canvas2 = document.getElementById("chartDE");
+    var ctx2 = canvas2.getContext('2d');
+
+    var options = {
+      title: {
+        display: false,
+        text: 'Deaths',
+        fontSize: 11,
+        fontColor: 'rgba(159, 220, 141, 1)',
+        position: 'top',
+
+      },
+      tooltips: {
+        enabled: true,
+        mode: 'label',
+        cornerRadius: 5,
+        caretSize: 5,
+        xPadding: 10,
+        yPadding: 10,
+        backgroundColor: 'rgba(159, 220, 141, 0.7)',
+        titleFontStyle: 'normal',
+        titleFontSize: 11,
+        bodyFontSize: 11,
+        titleMarginBottom: 11,
+        custom: function(tooltip) {
+          if (!tooltip) return;
+          tooltip.displayColors = false;
+        },
+        mode: 'single',
+        intersect: true,
+
+      },
+      legend: {
+        display: false,
+      },
+      scales: {
+        yAxes: [{
+          stacked: false,
+          gridLines: {
+            display: true,
+            color: "rgba(159, 220, 141, 0.2)",
+            zeroLineColor: 'rgba(159, 220, 141, 1)',
+
+
+          },
+          ticks: {
+            fontSize: 11,
+            fontColor: 'rgba(159, 220, 141, 1)',
+            padding: 20,
+            stepSize: 20000,
+            max: 80000,
+            beginAtZero: true,
+            min: 0,
+          }
+        }],
+        xAxes: [{
+          gridLines: {
+            display: true,
+            color: "rgba(159, 220, 141, 0.2)",
+            zeroLineColor: 'rgba(159, 220, 141, 1)',
+
+          },
+          ticks: {
+            fontSize: 11,
+            fontColor: 'rgba(159, 220, 141, 1)',
+            padding: 20,
+            beginAtZero: true,
+            maxRotation: 45,
+            minRotation: 45,
+          }
+
+        }]
+
+      },
+      responsive: true,
+      maintainAspectRatio: false,
+    };
+
+    var dataLine = {
+      labels: ["2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "COVID"],
+
+      datasets: [{
+        label: "WITH PANDEMIC",
+        data: [],
+        lineTension: 0,
+        borderColor: "rgba(159, 220, 141, 1)",
+        pointRadius: 3,
+        backgroundColor: 'rgba(159, 220, 141, 0.3)',
+        pointBackgroundColor: "rgba(159, 220, 141, 1)",
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: "rgba(159, 220, 141, 1)",
+      },
+      {
+        label: "WITHOUT PANDEMIC",
+        data: [],
+        lineTension: 0,
+        borderColor: "rgba(217, 231, 213, 1)",
+        pointRadius: 3,
+        backgroundColor: 'rgba(240, 48, 104, 0)',
+        pointBackgroundColor: "rgba(217, 231, 213, 1)",
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: "rgba(230, 237, 227, 1)",
+        borderDash: [4,2],
+      }]
+    };
+
+    // Chart declaration:
+    var deathsChart = new Chart(ctx2, {
+      type: 'line',
+      data: dataLine,
+      options: options
+    });
+  </script>
+
+</body>
+
+</html>
