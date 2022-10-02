@@ -561,20 +561,25 @@ hr {
 }
 
 .insButton {
-  border-radius: 50%;
-  color: rgb(240, 48, 104);
+  border-radius: 25px;
+  color: rgb(240, 48, 104) !important;
   background-color: rgba(3, 17, 9, 1);
-  border: 3px solid rgb(240, 48, 104);
-  font-size: 25px;
-  line-height: 32px;
+  border: 2px solid rgb(240, 48, 104);
+  font-size: 15px;
+  line-height: 1.1;
+  padding: 5px 7px;
   position: absolute;
   text-align: center;
   margin-left: 300px;
   top: 3%;
-  height: 28px;
-  width: 28px;
+  height: auto;
+  width: auto;
   cursor: pointer;
   transition: all 0.1s cubic-bezier(.42,0,1,1), transform 0.1s cubic-bezier(.42,0,1,1), -webkit-transform 0.1s cubic-bezier(.42,0,1,1);
+}
+
+.insButton a {
+  color: rgb(240, 48, 104) !important;
 }
 
 .instructions {
